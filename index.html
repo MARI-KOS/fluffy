@@ -1,0 +1,952 @@
+# HTMLコンテンツをファイルとして書き出し、ブラウザで表示するための準備をします
+html_content = """
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROFILE - Prince Fuwamocchi III</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333333;
+            --text-body: #444444;
+            --accent-pink: #ff8cb6;
+            --accent-blue: #70e8e0;
+            --accent-gold: #f0d550;
+            --bg-color: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 1.0);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            color: var(--primary-color);
+            overflow: hidden;
+            height: 100vh;
+            line-height: 1.8;
+        }
+
+        body.loaded {
+            overflow-y: auto; 
+            height: auto;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 1.2s;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        .loading-logo {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 3.5rem;
+            color: var(--accent-pink);
+            margin-bottom: 1.5rem;
+            text-shadow: 0px 0px 15px rgba(255, 140, 182, 0.3);
+        }
+
+        .loading-bar-container {
+            width: 200px;
+            height: 4px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-pink));
+            transition: width 0.1s linear;
+        }
+        
+        .loading-text {
+            margin-top: 1rem;
+            font-family: 'Italiana', serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            color: #888;
+        }
+
+        /* Background Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 1.0; 
+        }
+
+        /* Main Content Layout */
+        .page-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+        
+        .page-container.visible {
+            opacity: 1;
+        }
+
+        section {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 6rem 2rem;
+            box-sizing: border-box;
+        }
+
+        h1, h2, h3 { margin: 0; }
+
+        .section-title {
+            font-family: 'Italiana', serif;
+            font-size: clamp(2.8rem, 5vw, 4.5rem);
+            margin-bottom: 4rem;
+            background: linear-gradient(45deg, var(--accent-pink), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+        }
+        
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding: 2.5rem 4rem;
+            z-index: 100;
+            display: flex;
+            gap: 2.5rem;
+            opacity: 0;
+            transition: opacity 1s ease 1s;
+        }
+        .loaded nav { opacity: 1; }
+
+        .nav-item {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-family: 'Italiana', serif;
+            font-size: 1.2rem;
+            position: relative;
+            letter-spacing: 0.1em;
+            transition: color 0.3s;
+            font-weight: 600;
+        }
+        .nav-item:hover { color: var(--accent-pink); }
+
+        /* Hero Section */
+        .hero-section {
+            height: 100vh;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1.8s cubic-bezier(0.2, 1, 0.3, 1) 0.5s;
+        }
+        .loaded .hero-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hero-logo {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: clamp(1.4rem, 2.5vw, 2rem);
+            color: var(--accent-pink);
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .hero-title {
+            font-family: 'Italiana', serif;
+            font-size: clamp(4.5rem, 12vw, 9.5rem);
+            font-weight: 400;
+            line-height: 0.9;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Italiana', serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            color: var(--accent-pink);
+            font-weight: bold;
+            animation: bounce 2s infinite;
+            opacity: 0;
+            transition: opacity 1s ease 1.5s;
+        }
+        .loaded .scroll-hint { opacity: 1; }
+
+        /* About Section */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid #fff;
+            border-radius: 20px;
+            padding: 5rem 4rem;
+            width: 100%;
+            max-width: 1000px;
+            box-shadow: 0 20px 60px rgba(255, 140, 182, 0.1); 
+            display: flex;
+            flex-direction: row;
+            gap: 5rem;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s ease;
+        }
+
+        @media (max-width: 800px) {
+            .glass-card {
+                flex-direction: column;
+                padding: 3rem 2rem;
+                gap: 2.5rem;
+            }
+        }
+
+        .glass-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .profile-img-wrapper {
+            flex: 1;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            max-width: 380px;
+            width: 100%;
+            position: relative;
+            background: #eee;
+            aspect-ratio: 1;
+        }
+        
+        .profile-img-wrapper::after {
+            content: 'Photo';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ccc;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.8s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-text {
+            flex: 1.3;
+            text-align: left;
+        }
+
+        .profile-name {
+            font-family: 'Italiana', serif;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        .profile-role {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.2rem;
+            color: var(--accent-pink);
+            letter-spacing: 0.05em;
+            margin-bottom: 2rem;
+            display: block;
+            font-weight: 600;
+        }
+        .profile-desc {
+            line-height: 2.2;
+            color: var(--text-body);
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Works Section */
+        .slider-section {
+            padding: 6rem 0 0 0; 
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255, 245, 250, 0.5) 100%);
+        }
+
+        .slider-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .slider-header-wrapper {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 20;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            width: 100%;
+            padding: 2rem 0;
+        }
+
+        .slide {
+            min-width: 100%;
+            padding: 0 1rem;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.4;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            transform: scale(0.92);
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .work-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            padding: 3.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(200, 200, 255, 0.1);
+            display: flex;
+            flex-direction: row;
+            gap: 4rem;
+            width: 100%;
+            max-width: 1000px;
+            align-items: center;
+            border: 1px solid #fff;
+        }
+
+        @media (max-width: 768px) {
+            .work-card {
+                flex-direction: column;
+                padding: 2.5rem;
+                gap: 2rem;
+            }
+        }
+
+        .work-img-area {
+            flex: 1.2;
+            overflow: hidden;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            background-color: #ffeef5;
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffb8d1;
+        }
+        .work-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1s ease;
+            display: block;
+        }
+
+        .work-info {
+            flex: 1.2;
+            text-align: left;
+        }
+
+        .work-cat {
+            font-family: 'Italiana', serif;
+            font-size: 1rem;
+            color: var(--accent-blue);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.8rem;
+            display: block;
+            font-weight: 700;
+        }
+        .work-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            color: var(--primary-color);
+        }
+        .work-desc {
+            font-size: 1.05rem;
+            line-height: 2;
+            color: var(--text-body);
+            margin-bottom: 2.5rem;
+            font-weight: 500;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            z-index: 20;
+        }
+        .nav-btn {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #fff;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--accent-pink);
+            padding-bottom: 4px;
+            font-weight: bold;
+        }
+        .nav-btn:hover {
+            transform: scale(1.1);
+            background: var(--accent-pink);
+            color: #fff;
+        }
+
+        /* Contact Section */
+        .contact-form-wrapper {
+            position: relative; 
+            z-index: 50;        
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(30px);
+            padding: 4rem 5rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 650px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid #fff;
+        }
+        .contact-form-wrapper.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .contact-intro {
+            margin-bottom: 3rem;
+            line-height: 2;
+            color: var(--text-body);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .form-row {
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+        .form-label {
+            display: block;
+            font-family: 'Italiana', serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.8rem;
+            color: var(--accent-pink);
+            font-weight: 800;
+        }
+        .form-control {
+            width: 100%;
+            padding: 1.2rem;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            background: #fff;
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-sizing: border-box;
+            color: #333;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 4px rgba(255, 140, 182, 0.15);
+        }
+        
+        .submit-btn {
+            margin-top: 1rem;
+            display: inline-block;
+            padding: 1.2rem 5rem;
+            background: linear-gradient(45deg, var(--accent-pink), #ffbedb);
+            color: #fff;
+            border: none;
+            font-family: 'Italiana', serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(255, 140, 182, 0.3);
+            font-weight: bold;
+        }
+
+        footer {
+            padding: 3rem;
+            font-size: 0.9rem;
+            color: #888;
+            text-align: center;
+            font-family: 'Italiana', serif;
+            letter-spacing: 0.05em;
+            font-weight: bold;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, 10px); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="loading-logo">Prince Fuwamocchi III</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+        <p class="loading-text">LOADING...</p>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="page-container">
+
+        <nav>
+            <a href="#about" class="nav-item">About</a>
+            <a href="#works" class="nav-item">Favorites</a>
+            <a href="#contact" class="nav-item">Contact</a>
+        </nav>
+
+        <section class="hero-section">
+            <div class="hero-content">
+                <span class="hero-logo">My Profile</span>
+                <h1 class="hero-title">Prince Fuwamocchi III<br>Official</h1>
+                <p class="hero-desc">
+                    I'm a Fluffy Genius!（わたしはフワフワな天才だわ！）
+                </p>
+            </div>
+            <div class="scroll-hint">SCROLL DOWN</div>
+        </section>
+
+        <section id="about">
+            <h2 class="section-title">About Me</h2>
+            <div class="glass-card scroll-anim">
+                <div class="profile-img-wrapper">
+                    </div>
+                <div class="profile-text">
+                    <h3 class="profile-name">Prince Fuwamocchi III</h3>
+                    <span class="profile-role">I'm a Fluffy Genius!（わたしはフワフワな天才だわ！）</span>
+                    <p class="profile-desc">
+                        私の好きなものや、日々の「推し」を紹介するサイトです。<br>
+                        ゆっくりしていってくださいね！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="works" class="slider-section">
+            <div class="slider-container">
+                <div class="slider-header-wrapper">
+                    <h2 class="section-title" style="margin-bottom: 0;">My Favorites</h2>
+                </div>
+
+                <div class="slider-wrapper" id="sliderWrapper">
+                    
+                    <div class="slide active">
+                        <div class="work-card">
+                            <div class="work-img-area">
+                                01
+                            </div>
+                            <div class="work-info">
+                                <span class="work-cat">Favorite 01</span>
+                                <h3 class="work-title">キラキラしたもの</h3>
+                                <p class="work-desc">
+                                    自分の瞳に映る自分自身が一番キラキラしていてお気に入りだけど、たまに窓に映った自分に「あら、素敵な子ね」って挨拶しちゃうの。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slide">
+                        <div class="work-card">
+                            <div class="work-img-area">
+                                02
+                            </div>
+                            <div class="work-info">
+                                <span class="work-cat">Favorite 02</span>
+                                <h3 class="work-title">王冠のメンテナンス</h3>
+                                <p class="work-desc">
+                                    すぐ頭から滑り落ちちゃうから、毎日角度を研究しているわ。でも最近、乗せるより「乗ってる気分」でいる方が大事だって気づいたのよ。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slide">
+                        <div class="work-card">
+                            <div class="work-img-area">
+                                03
+                            </div>
+                            <div class="work-info">
+                                <span class="work-cat">Favorite 03</span>
+                                <h3 class="work-title">マシュマロのお昼寝</h3>
+                                <p class="work-desc">
+                                    マシュマロを食べながら寝るのが大好きなの。フワフワだからセーフだわ！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="slider-controls">
+                    <div class="nav-btn" id="prevBtn">〈</div>
+                    <div class="nav-btn" id="nextBtn">〉</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2 class="section-title">Contact</h2>
+            <div class="contact-form-wrapper scroll-anim">
+                <p class="contact-intro">
+                    感想やメッセージをお待ちしています！
+                </p>
+                <form id="myContactForm">
+                    <div class="form-row">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="お名前" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="メールアドレス" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Message</label>
+                        <textarea name="message" class="form-control" rows="4" placeholder="メッセージ" style="resize: vertical;" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+            <footer>
+                &copy; 2026 Prince Fuwamocchi III. All Rights Reserved.
+            </footer>
+        </section>
+
+    </div>
+
+    <script>
+        // --- Loading Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingBar = document.getElementById('loading-bar');
+            const pageContainer = document.querySelector('.page-container');
+            const body = document.body;
+            
+            let progress = 0;
+            const timer = setInterval(() => {
+                progress += Math.random() * 4; 
+                if(progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    loadingBar.style.width = "100%";
+                    
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        pageContainer.classList.add('visible');
+                        body.classList.add('loaded');
+                        setTimeout(() => loadingScreen.style.display = 'none', 1500);
+                    }, 600);
+                } else {
+                    loadingBar.style.width = progress + "%";
+                }
+            }, 20);
+        });
+
+        // --- Scroll Animation ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
+
+        // --- Slider Logic ---
+        const sliderWrapper = document.getElementById('sliderWrapper');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let isAnimating = false;
+
+        function updateClasses() {
+            Array.from(sliderWrapper.children).forEach((slide, index) => {
+                if (index === 0) slide.classList.add('active');
+                else slide.classList.remove('active');
+            });
+        }
+
+        function moveNext() {
+            if(isAnimating) return;
+            isAnimating = true;
+            
+            sliderWrapper.style.transition = 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1)';
+            sliderWrapper.style.transform = 'translateX(-100%)';
+            
+            setTimeout(() => {
+                sliderWrapper.style.transition = 'none';
+                sliderWrapper.appendChild(sliderWrapper.firstElementChild);
+                sliderWrapper.style.transform = 'translateX(0)';
+                updateClasses();
+                isAnimating = false;
+            }, 800);
+        }
+
+        function movePrev() {
+            if(isAnimating) return;
+            isAnimating = true;
+            
+            sliderWrapper.style.transition = 'none';
+            sliderWrapper.prepend(sliderWrapper.lastElementChild);
+            sliderWrapper.style.transform = 'translateX(-100%)';
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    sliderWrapper.style.transition = 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1)';
+                    sliderWrapper.style.transform = 'translateX(0)';
+                });
+            });
+            
+            setTimeout(() => {
+                updateClasses();
+                isAnimating = false;
+            }, 800);
+        }
+
+        nextBtn.addEventListener('click', moveNext);
+        prevBtn.addEventListener('click', movePrev);
+        setInterval(moveNext, 5000); 
+
+        // --- Contact Form Logic (GAS Integration) ---
+        const contactForm = document.getElementById('myContactForm');
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbyejU2HI-uJ0RX4Z091VWjFhVOI7pmPqpXoWIUY10v1iDJlsHpNvEP8-uR1vNJ1QC84/exec'; 
+
+            const formData = new FormData(contactForm);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            const btn = contactForm.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Sending...';
+            btn.disabled = true;
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                alert('メッセージを送信しました！');
+                contactForm.reset();
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert('送信に失敗しました。');
+            })
+            .finally(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        });
+
+        // --- Three.js Simulation ---
+        let simMaterial, drawMaterial, renderer, scene, camera, targetA, targetB, simScene, drawScene, simQuad, drawQuad;
+
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            renderer = new THREE.WebGLRenderer({ alpha: false, antialias: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const size = new THREE.Vector2(window.innerWidth, window.innerHeight);
+            targetA = new THREE.WebGLRenderTarget(size.x, size.y, {
+                minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter,
+                format: THREE.RGBAFormat, type: THREE.FloatType
+            });
+            targetB = targetA.clone();
+
+            const simFS = `
+                uniform sampler2D u_buffer; uniform vec2 u_resolution; uniform vec2 u_mouse;
+                uniform float u_time; uniform float u_is_moving;
+                
+                vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+                float snoise(vec2 v) {
+                    const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                    vec2 i = floor(v + dot(v, C.yy)); vec2 x0 = v - i + dot(i, C.xx);
+                    vec2 i1; i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                    vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1;
+                    i = mod289(i); vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+                    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                    m = m*m; m = m*m; vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                    vec3 h = abs(x) - 0.5; vec3 ox = floor(x + 0.5); vec3 a0 = x - ox;
+                    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+                    vec3 g; g.x = a0.x * x0.x + h.x * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                    return 130.0 * dot(m, g);
+                }
+                
+                void main() {
+                    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                    vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
+                    float dist = distance(uv * aspect, u_mouse * aspect);
+                    float intensity = exp(-pow(dist / 0.05, 2.0)) * u_is_moving;
+                    vec3 c = mix(vec3(0.3, 0.9, 0.95), vec3(1.0, 0.6, 0.8), sin(u_time)*0.5+0.5);
+                    vec2 off = vec2(snoise(uv*1.2+u_time*0.1), snoise(uv*1.2-u_time*0.1+10.0)) * 0.002;
+                    vec4 prev = texture2D(u_buffer, uv - off);
+                    gl_FragColor = vec4(max(prev.rgb * 0.99, c * intensity), 1.0);
+                }
+            `;
+
+            simMaterial = new THREE.ShaderMaterial({
+                uniforms: { u_buffer: { value: null }, u_resolution: { value: size }, u_mouse: { value: new THREE.Vector2(-10, -10) }, u_time: { value: 0 }, u_is_moving: { value: 0.0 } },
+                vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`, fragmentShader: simFS
+            });
+
+            drawMaterial = new THREE.ShaderMaterial({
+                uniforms: { u_texture: { value: null }, u_resolution: { value: size } },
+                vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`,
+                fragmentShader: `
+                    uniform sampler2D u_texture;
+                    void main() {
+                        vec2 uv = gl_FragCoord.xy / vec2(${size.x}, ${size.y});
+                        vec3 tex = texture2D(u_texture, uv).rgb;
+                        gl_FragColor = vec4(mix(vec3(1.0), tex, smoothstep(0.01, 0.8, length(tex)*2.0)), 1.0);
+                    }
+                `
+            });
+
+            const plane = new THREE.PlaneGeometry(2, 2);
+            simQuad = new THREE.Mesh(plane, simMaterial); simScene = new THREE.Scene(); simScene.add(simQuad);
+            drawQuad = new THREE.Mesh(plane, drawMaterial); drawScene = new THREE.Scene(); drawScene.add(drawQuad);
+            animate();
+        }
+
+        const clock = new THREE.Clock();
+        const mouse = new THREE.Vector2(-100, -100);
+        let isMoving = 0.0, moveTimeout;
+
+        function updateMouse(x, y) {
+            mouse.x = x / window.innerWidth; mouse.y = 1.0 - (y / window.innerHeight);
+            isMoving = 1.0; clearTimeout(moveTimeout); moveTimeout = setTimeout(() => isMoving = 0.0, 100);
+        }
+
+        window.addEventListener('mousemove', (e) => updateMouse(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => updateMouse(e.touches[0].clientX, e.touches[0].clientY));
+
+        function animate() {
+            requestAnimationFrame(animate);
+            simMaterial.uniforms.u_buffer.value = targetA.texture;
+            simMaterial.uniforms.u_time.value = clock.getElapsedTime();
+            simMaterial.uniforms.u_mouse.value = mouse;
+            simMaterial.uniforms.u_is_moving.value = isMoving;
+            renderer.setRenderTarget(targetB); renderer.render(simScene, camera);
+            renderer.setRenderTarget(null); drawMaterial.uniforms.u_texture.value = targetB.texture; renderer.render(drawScene, camera);
+            let t = targetA; targetA = targetB; targetB = t;
+        }
+
+        initThreeJS();
+    </script>
+</body>
+</html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+import webbrowser
+import os
+webbrowser.open('file://' + os.path.realpath("index.html"))
