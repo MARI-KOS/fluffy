@@ -328,6 +328,21 @@
         font-weight: 500;
       }
 
+      /* Movie */
+      .movie-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      .movie-desc {
+        margin-bottom: 2rem;
+      }
+      .movie-video {
+        width: 100%;
+        max-width: 900px;
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+
       /* Favorites / Slider */
       .slider-section {
         padding: 6rem 0 0 0;
@@ -584,9 +599,9 @@
 
       <section id="movie">
         <h2 class="section-title">Movie</h2>
-        <div class="glass-card scroll-anim" style="flex-direction: column; text-align: center;">
-          <p class="profile-desc" style="margin-bottom: 2rem;">ふわふわな日常を送っているよ</p>
-          <video controls playsinline preload="metadata" style="width: 100%; max-width: 900px; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.08);">
+        <div class="glass-card scroll-anim movie-card">
+          <p class="profile-desc movie-desc">ふわふわな日常を送っているよ</p>
+          <video class="movie-video" controls playsinline preload="metadata">
             <source src="videos/weryai_1770532067183.mp4" type="video/mp4" />
             お使いのブラウザは動画タグに対応していません。
           </video>
@@ -685,6 +700,7 @@
       </section>
     </div>
 
+    <!--
     <script type="text/plain" data-disabled="legacy-script">
       // --- Loading Logic ---
       document.addEventListener("DOMContentLoaded", () => {
@@ -1135,6 +1151,7 @@
           });
       });
     </script>
+    -->
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/stable-fluids.js"></script>
   </body>
