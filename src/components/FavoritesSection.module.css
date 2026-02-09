@@ -28,6 +28,7 @@
   width: 100%;
   padding: 2rem 0;
   touch-action: pan-y;
+  position: relative;
 }
 
 .sliderControls {
@@ -103,9 +104,6 @@
 
 @media (max-width: 768px) {
   .sliderControls {
-    top: auto;
-    bottom: 1.2rem;
-    transform: none;
     padding: 0 1rem;
   }
   .sliderBtn {
