@@ -66,24 +66,22 @@ export default function FavoritesSection() {
               </div>
             </div>
           </div>
+          <div className={styles.sliderControls} aria-label="Slider controls">
+            <button className={`${styles.sliderBtn} ${styles.sliderPrev}`} id="sliderPrev" type="button" aria-label="Previous">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path className={styles.sliderIcon} d="M14.5 6.5L9 12l5.5 5.5" />
+                <path className={styles.sliderSparkle} d="M6.5 9.2l.4 1 .9.4-.9.4-.4 1-.4-1-.9-.4.9-.4.4-1z" />
+              </svg>
+            </button>
+            <button className={`${styles.sliderBtn} ${styles.sliderNext}`} id="sliderNext" type="button" aria-label="Next">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path className={styles.sliderIcon} d="M9.5 6.5L15 12l-5.5 5.5" />
+                <path className={styles.sliderSparkle} d="M17.5 12.8l.4 1 .9.4-.9.4-.4 1-.4-1-.9-.4.9-.4.4-1z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div className={styles.sliderControls} aria-label="Slider controls">
-          <button className={`${styles.sliderBtn} ${styles.sliderPrev}`} id="sliderPrev" type="button" aria-label="Previous">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path className={styles.sliderIcon} d="M14.5 6.5L9 12l5.5 5.5" />
-              <path className={styles.sliderSparkle} d="M6.5 9.2l.4 1 .9.4-.9.4-.4 1-.4-1-.9-.4.9-.4.4-1z" />
-            </svg>
-          </button>
-          <button className={`${styles.sliderBtn} ${styles.sliderNext}`} id="sliderNext" type="button" aria-label="Next">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path className={styles.sliderIcon} d="M9.5 6.5L15 12l-5.5 5.5" />
-              <path className={styles.sliderSparkle} d="M17.5 12.8l.4 1 .9.4-.9.4-.4 1-.4-1-.9-.4.9-.4.4-1z" />
-            </svg>
-          </button>
-        </div>
-
-        <div className={styles.swipeHint}>Swipe</div>
       </div>
     </section>
   );

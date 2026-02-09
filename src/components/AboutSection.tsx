@@ -14,9 +14,10 @@ export default function AboutSection() {
           <h3 className={styles.profileName}>Prince Fuwamocchi III</h3>
           <span className={styles.profileRole}>I'm a Fluffy Genius!</span>
           <p className={styles.profileDesc}>
-            私の好きなものや、日々の「推し」を紹介するサイトです。
+            あら、いらっしゃい！
             <br />
-            ゆっくりしていってくださいね！
+            世界で一番フワフワ、プリンス・フワモッチ・三世よ。まずはこの毛並みをじっくり堪能してちょうだい！画面をなでなでするのは禁止よ？
+            指紋がついちゃうから……うふふ、冗談だわ！どんどん愛でてちょうだいね！
           </p>
         </div>
       </div>

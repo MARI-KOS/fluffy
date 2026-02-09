@@ -77,6 +77,11 @@ export default function ClientEffects() {
       });
     };
 
+    const startAutoSlide = () => {
+      if (sliderInterval) window.clearInterval(sliderInterval);
+      sliderInterval = window.setInterval(moveNext, 5000);
+    };
+
     const moveNext = () => {
       if (!sliderWrapper || isAnimating) return;
       isAnimating = true;
@@ -147,7 +152,7 @@ export default function ClientEffects() {
       window.addEventListener("pointerup", onUp, { passive: true });
       sliderWrapper.addEventListener("touchstart", onDown, { passive: true });
       window.addEventListener("touchend", onUp, { passive: true });
-      sliderInterval = window.setInterval(moveNext, 5000);
+      startAutoSlide();
     }
 
     const stopPointer = (event: Event) => {
@@ -156,10 +161,12 @@ export default function ClientEffects() {
     const onPrevClick = (event: Event) => {
       event.preventDefault();
       movePrev();
+      startAutoSlide();
     };
     const onNextClick = (event: Event) => {
       event.preventDefault();
       moveNext();
+      startAutoSlide();
     };
 
     if (sliderPrev && sliderNext) {
