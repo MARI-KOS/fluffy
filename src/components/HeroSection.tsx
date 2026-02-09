@@ -1,16 +1,19 @@
+import styles from "./HeroSection.module.css";
+import shared from "./Shared.module.css";
+
 export default function HeroSection() {
   return (
-    <section className="hero-section">
-      <div className="hero-content">
-        <span className="hero-logo">My Profile</span>
-        <h1 className="hero-title">
+    <section className={`${shared.section} ${styles.heroSection}`}>
+      <div className={styles.heroContent}>
+        <span className={styles.heroLogo}>My Profile</span>
+        <h1 className={styles.heroTitle}>
           Prince Fuwamocchi III
           <br />
           Official
         </h1>
-        <p className="hero-desc">I'm a Fluffy Genius!</p>
+        <p className={styles.heroDesc}>I'm a Fluffy Genius!</p>
       </div>
-      <div className="scroll-hint">SCROLL DOWN</div>
+      <div className={styles.scrollHint}>SCROLL DOWN</div>
     </section>
   );
 }

@@ -6,14 +6,15 @@ import HeroSection from "@/components/HeroSection";
 import LoadingScreen from "@/components/LoadingScreen";
 import MovieSection from "@/components/MovieSection";
 import Navigation from "@/components/Navigation";
+import layoutStyles from "./PageLayout.module.css";
 
 export default function Home() {
   return (
     <>
       <LoadingScreen />
-      <div id="canvas-container" aria-hidden="true" />
+      <div id="canvas-container" className={layoutStyles.canvasContainer} aria-hidden="true" />
 
-      <div className="page-container">
+      <div className={layoutStyles.pageContainer} data-page-container>
         <Navigation />
         <HeroSection />
         <AboutSection />

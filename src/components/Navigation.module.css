@@ -1,0 +1,36 @@
+.nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 2.2rem 2.4rem;
+  z-index: 100;
+  display: flex;
+  gap: 1.8rem;
+  opacity: 0;
+  transition: opacity 1s ease 1s;
+}
+
+:global(.loaded) .nav {
+  opacity: 1;
+}
+
+.navItem {
+  text-decoration: none;
+  color: var(--primary-color);
+  font-family: "Italiana", serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  transition: color 0.3s;
+  font-weight: 600;
+}
+
+.navItem:hover {
+  color: var(--accent-pink);
+}
+
+@media (max-width: 800px) {
+  .nav {
+    padding: 1.4rem 1.2rem;
+    gap: 1.1rem;
+  }
+}

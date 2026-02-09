@@ -1,16 +1,18 @@
+import styles from "./Navigation.module.css";
+
 export default function Navigation() {
   return (
-    <nav>
-      <a href="#about" className="nav-item">
+    <nav className={styles.nav}>
+      <a href="#about" className={styles.navItem}>
         About
       </a>
-      <a href="#movie" className="nav-item">
+      <a href="#movie" className={styles.navItem}>
         Movie
       </a>
-      <a href="#works" className="nav-item">
+      <a href="#works" className={styles.navItem}>
         Favorites
       </a>
-      <a href="#contact" className="nav-item">
+      <a href="#contact" className={styles.navItem}>
         Contact
       </a>
     </nav>

@@ -1,0 +1,22 @@
+.pageContainer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+.pageContainer[data-visible="true"] {
+  opacity: 1;
+}
+
+.canvasContainer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 1;
+}
+
+.canvasContainer canvas {
+  display: block;
+}

@@ -1,0 +1,50 @@
+.movieCard {
+  flex-direction: column;
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.movieVideo {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+}
+
+.moviePlayer {
+  position: relative;
+  width: 100%;
+}
+
+.movieSoundToggle {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary-color);
+  font-family: "Italiana", serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.movieSoundToggle svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.movieSoundToggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.movieSoundToggle:focus-visible {
+  outline: 3px solid rgba(255, 140, 182, 0.4);
+  outline-offset: 3px;
+}

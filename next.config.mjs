@@ -1,12 +1,15 @@
 /** @type {import("next").NextConfig} */
-const isProd = process.env.NODE_ENV === "production";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 const nextConfig = {
   reactStrictMode: true,
   output: "export",
   trailingSlash: true,
-  basePath: isProd ? "/fluffy" : "",
-  assetPrefix: isProd ? "/fluffy/" : "",
+  basePath,
+  assetPrefix: basePath ? `${basePath}/` : "",
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   devIndicators: {
     buildActivity: false,
     appIsrStatus: false,

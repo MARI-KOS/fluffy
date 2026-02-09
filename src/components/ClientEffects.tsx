@@ -10,7 +10,7 @@ export default function ClientEffects() {
 
     const loadingScreen = document.getElementById("loading-screen");
     const loadingBar = document.getElementById("loading-bar");
-    const pageContainer = document.querySelector(".page-container");
+    const pageContainer = document.querySelector("[data-page-container]");
     const body = document.body;
 
     let loadingTimer: number | undefined;
@@ -25,8 +25,8 @@ export default function ClientEffects() {
           loadingBar.style.width = "100%";
 
           window.setTimeout(() => {
-            loadingScreen.classList.add("hidden");
-            pageContainer.classList.add("visible");
+            loadingScreen.setAttribute("data-hidden", "true");
+            pageContainer.setAttribute("data-visible", "true");
             body.classList.add("loaded");
             window.setTimeout(() => {
               loadingScreen.style.display = "none";
@@ -37,19 +37,19 @@ export default function ClientEffects() {
         }
       }, 20);
     } else {
-      pageContainer?.classList.add("visible");
+      pageContainer?.setAttribute("data-visible", "true");
       body.classList.add("loaded");
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("visible");
+          if (entry.isIntersecting) entry.target.setAttribute("data-visible", "true");
         });
       },
       { threshold: 0.15 },
     );
-    document.querySelectorAll(".scroll-anim").forEach((el) => observer.observe(el));
+    document.querySelectorAll("[data-scroll-anim]").forEach((el) => observer.observe(el));
 
     const canvasContainer = document.getElementById("canvas-container");
     let fxCleanup: (() => void) | undefined;
@@ -72,8 +72,8 @@ export default function ClientEffects() {
     const updateClasses = () => {
       if (!sliderWrapper) return;
       Array.from(sliderWrapper.children).forEach((slide, index) => {
-        if (index === 0) slide.classList.add("active");
-        else slide.classList.remove("active");
+        if (index === 0) slide.setAttribute("data-active", "true");
+        else slide.removeAttribute("data-active");
       });
     };
 
